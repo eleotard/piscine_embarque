@@ -28,7 +28,7 @@
 
 all: hex flash
 
-hex:
+hex: hex
 	avr-gcc -mmcu=atmega328p -Os -F_CPU=1000000 -o main.bin main.c
 	avr-objcopy -j .text -j .data -O ihex main.bin main.hex
 
