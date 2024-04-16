@@ -33,10 +33,10 @@ FLAGS = -mmcu=atmega328p -Wall -Wextra -Werror -Os -DF_CPU=1000000
 
 all: main.hex flash
 
-%.o: %.c Makefile
+%.o: %.c Makefile #pour que ca recompile si le makefile est modifie
 	avr-gcc ${FLAGS} -c $< -o $@
 
-main.bin: ${OBJS}
+main.bin: ${OBJS} #doit etre le nom du fichier
 	avr-gcc -mmcu=atmega328p -o $@ ${OBJS}
 
 main.hex: main.bin
