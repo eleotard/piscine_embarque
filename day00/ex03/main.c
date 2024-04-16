@@ -17,7 +17,7 @@ int main()
 		bool newstate = PIND & (1 << PD2); //si bouton appuye (=0)
 		if ((laststate != newstate) && newstate == 0)
 			PORTB ^= (1 << PB0);
-		_delay_ms(500);
+		_delay_ms(50);
 		laststate = newstate;
 	}
 }
