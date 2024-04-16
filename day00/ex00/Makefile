@@ -29,7 +29,7 @@ SRCS = main.c
 
 OBJS = ${SRCS:%.c=%.o}
 
-FLAGS = -mmcu=atmega328p -Wall -Wextra -Werror -Os -DF_CPU=1000000 
+FLAGS = -mmcu=atmega328p -Wall -Wextra -Werror -Os -DF_CPU=16000000 
 
 all: main.hex flash
 
