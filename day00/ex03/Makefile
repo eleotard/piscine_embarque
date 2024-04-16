@@ -19,6 +19,7 @@ flash:
 	avrdude -p atmega328p -c arduino -P /dev/ttyUSB0 -b 115200 -e -U flash:w:main.hex:i 
 
 clean:
+	rm *.o
 	rm *.hex
 	rm *.bin
 
