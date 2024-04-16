@@ -1,8 +1,19 @@
-all: hex flash
+SRCS = main.c
 
-hex:
-	avr-gcc -mmcu=atmega328p -Os -F_CPU=1000000 -o main.bin main.c
-	avr-objcopy -j .text -j .data -O ihex main.bin main.hex
+OBJS = ${SRCS:%.c=%.o}
+
+FLAGS = -mmcu=atmega328p -Wall -Wextra -Werror -Os -DF_CPU=1000000 
+
+all: main.hex flash
+
+%.o: %.c Makefile
+	avr-gcc ${FLAGS} -c $< -o $@
+
+main.bin: ${OBJS}
+	avr-gcc -mmcu=atmega328p -o $@ ${OBJS}
+
+main.hex: main.bin
+	avr-objcopy -j .text -j .data -O ihex main.bin $@
 
 flash:
 	avrdude -p atmega328p -c arduino -P /dev/ttyUSB0 -b 115200 -e -U flash:w:main.hex:i 
@@ -10,3 +21,5 @@ flash:
 clean:
 	rm *.hex
 	rm *.bin
+
+.PHONY: all clean flash

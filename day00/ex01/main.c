@@ -9,6 +9,10 @@ int main()
 	DDRB |= (1 << PB0); //definit la broche 0 du portB comme output
 	PORTB |= 1; //change l'etat a 1 de cette broche
 	
+	while(1)
+	{
+
+	}
 }
 
 //la machine s eteint quand elle arrive a la fin du prog

@@ -9,7 +9,7 @@ all: main.hex flash
 %.o: %.c Makefile
 	avr-gcc ${FLAGS} -c $< -o $@
 
-main.bin: ${OBJS}
+main.bin: ${OBJS} 
 	avr-gcc -mmcu=atmega328p -o $@ ${OBJS}
 
 main.hex: main.bin
