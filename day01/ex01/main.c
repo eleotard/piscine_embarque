@@ -4,7 +4,7 @@ int main()
 {
 	DDRB |= (1 << PB1);
 	
-	//Mode 14: compte de 0 à ICR1
+	//Mode 15: compte de 0 à ICR1
 	TCCR1A |= (1 << WGM10); //
 	TCCR1A |= (1 << WGM11);
 	TCCR1B |= (1 << WGM12);

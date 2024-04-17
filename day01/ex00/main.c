@@ -11,10 +11,11 @@
 int main()
 {
 	DDRB |= (1 << PB1); 		//definit PB1 comme output
+	uint32_t i;
 	while (1)
 	{
-		uint32_t i = 0;
-		while (i < ITERATIONS)	//2 cycles /i < 1333333
+		i = 0;
+		while (i < ITERATIONS)	//2 cycles /i < 133333
 			++i; 				//1 cycle
 		PORTB ^= (1 << PB1);	//allume ou eteint la led en definissant le bit concerne a 0(eteint) s'il est a 1(allume) et inversement
 	}
