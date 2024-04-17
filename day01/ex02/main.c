@@ -19,7 +19,7 @@ int main()
 	TCCR1B |= (1 << CS12);
 
 	ICR1 = 15625;
-	OCR1A = ICR1 * 1 / 10;
+	OCR1A = ICR1 / 10;
 	while (1)
 	{
 	}
