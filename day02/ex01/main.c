@@ -23,7 +23,8 @@ void set_timer_1()
 	TCCR1B |= (1 << WGM12);
 	TCCR1B |= (1 << WGM13);
 
-	// prediv 256
+	// prediv 1024
+	TCCR1B |= (1 << CS10);
 	TCCR1B |= (1 << CS12);
 
 	//oc1a
