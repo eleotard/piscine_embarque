@@ -9,6 +9,7 @@ void	set_baud_rate()
 {
 	uint32_t ubrr;
 
+	//PAGE 199
 	ubrr = (F_CPU / (16 * UART_BAUDRATE)); //la faut pas mettre le -1 jsp pk
 	//low part
 	UBRR0L = (uint8_t)(ubrr & 0xFF);
@@ -31,6 +32,7 @@ void	uart_tx(unsigned char c)
 	{
 
 	}
+	// registre utilise pour stocker les données à transmettre ou reçues.
 	UDR0 = c;
 }
 
