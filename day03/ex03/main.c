@@ -22,22 +22,35 @@ void	uart_init()
 void	uart_tx(unsigned char c)
 {
 	//UCSR0A : contient divers indicateurs de statut liés à la communication série, tels que des indicateurs de transmission complète, de réception de données, etc
-	//UDRE0 : bit de UCSR0A
-	//if UDRE0 is one, the buffer is empty, and therefore ready to be written.
 	while(!(UCSR0A & (1 << UDRE0)))
-	{
-
-	}
-	// registre utilise pour stocker les données à transmettre ou reçues.
+	{}
 	UDR0 = c;
+}
+
+char	uart_rx(void)
+{
+	while (!(UCSR0A & (1 << RXC0)))
+    {}
+	return UDR0;
+}
+
+ISR (USART_RX_vect)
+{
+	unsigned char rec;
+
+	rec = uart_rx();
+	if (rec >= 'a' && rec <= 'z')
+		rec -= 32;
+	else if (rec >= 'A' && rec <= 'Z')
+		rec += 32;
+	uart_tx(rec);
 }
 
 int main()
 {
 	uart_init();
+	sei();
 	while(1)
 	{
-		uart_tx('Z');
-		_delay_ms(1000);
 	}
 }
