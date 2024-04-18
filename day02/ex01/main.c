@@ -1,9 +1,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-
-#define LED_FREQ 50
-#define PRESCALE 256
+/////////////////////////////DOC PAGE 107
 #define true 1
 #define false 0
 
@@ -11,7 +9,6 @@ typedef int bool;
 volatile bool up = true;
 
 volatile int count = 0;
-//volatile uint8_t count_back = 0;
 
 //sert a gerer la frequence de la led
 void set_timer_1()
