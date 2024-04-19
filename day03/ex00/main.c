@@ -15,8 +15,6 @@ void	uart_init()
 	//UCSR0B -> USART Control and Status Register B : utilise pour controler les fonctionnalite de l'UART
 	// enable the transmitter and receiver
     UCSR0B |= (1 << RXEN0) | (1 << TXEN0);
-	//active l interruption pour uart rx
-	UCSR0B |= (1 << RXCIE0);
 }
 
 void	uart_tx(unsigned char c)

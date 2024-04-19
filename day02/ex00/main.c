@@ -9,7 +9,7 @@
 ISR (INT0_vect, ISR_BLOCK)
 {
 	PORTB ^= (1 << PB0);
-	ms_delay(50);
+	_delay_ms(200);
 	// Effacer le drapeau d'interruption INTF0 en écrivant un 1 dans le bit correspondant
     //EIFR |= (1 << INTF0);
 }
