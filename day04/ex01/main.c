@@ -49,28 +49,6 @@ void uart_printstr(const char* s)
 	//doc du capteur: adresse: 0x38 en hex, a indiquer dans twar
 //TWDR: registre de donnees
 
-void	send_slave_command()
-{
-	//clear pour continuer le transfert
-	TWCR = (1<<TWINT) | (1<<TWEN);
-	while (!(TWCR & (1 << TWINT)));
-	if (TWSR == 0x18) //SLA+W has been transmitted; ACK has been received
-	{
-		uart_printstr("bien fait le write dans SLA\n");
-		TWDR = 0x33;
-	}
-	TWCR = (1<<TWINT) | (1<<TWEN);
-	while (!(TWCR & (1 << TWINT)));
-	if (TWSR == 0x28) //data has been transmitted
-	{
-		uart_printstr("1e partie de la commande recue\n");
-		TWDR = 0x00;
-	}
-	TWCR = (1<<TWINT) | (1<<TWEN);
-	_delay_ms(80);
-}
-
-//initialise l'interface i2c sur le MCU
 void	i2c_init()
 {
 	//set debit binaire twi
@@ -83,30 +61,46 @@ void	i2c_init()
 	TWCR |= (1 << TWEN);
 }
 
-//demarre une communication entre le le MCU et le CAPTEUR
-//TWSR: registre d'etat
+void	i2c_read(void)
+{
+	
+}
+
+void	i2c_write(unsigned char data)
+{
+	TWCR = (1<<TWINT) | (1<<TWEN);
+	while (!(TWCR & (1 << TWINT)));
+	TWDR = data;
+	if (TWSR == 0x28) //data has been transmitted
+	{
+		uart_tx(data);
+		uart_printstr(" - recu\n");
+	}
+}
+
+void	send_slave_command()
+{
+	_delay_ms(10);
+	i2c_write(0xAC);
+	i2c_write(0x33);
+	i2c_write(0x00);
+	_delay_ms(80);
+}
+
 void	i2c_start()
 {
-	//wait tant que cest pas active
 	while (!(TWCR & (1 << TWINT)));
-	uart_tx(TWSR + 24);
-	if (TWSR == 0x08) //A START condition has been transmitted
-	{
-		// uart_tx(TWSR + 24);
+	//uart_tx(TWSR + 24);
+	if (TWSR == 0x08)
 		uart_printstr("A bien fait le start\n");
-		//permet de rentrer en MT("MASTER") mode
-		TWDR = SLA << 1;
-	}
+	TWDR = SLA << 1;
 	TWCR = (1<<TWINT) | (1<<TWEN);
 	while (!(TWCR & (1 << TWINT)));
 	if (TWSR == 0x18) //SLA+W has been transmitted; ACK has been received
-	{
 		uart_printstr("A bien fait le write dans SLA\n");
-	}
-	//send_slave_command();
+	send_slave_command();
 }
 
-//stoppe la communication
 void	i2c_stop()
 {
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
@@ -117,8 +111,9 @@ int main()
 	uart_init();
 	i2c_init();
 	i2c_start();
+	i2c_read();
 	i2c_stop();
 	while (1)
-	{}
+	{	}
 	return 1;
 }
