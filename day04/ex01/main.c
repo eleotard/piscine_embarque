@@ -8,6 +8,16 @@
 #define PRESCALER 1
 #define SLA	0x38
 
+
+void	int_to_hex_str(uint8_t data, char *data_str)
+{
+	const char hex_digits[] = "0123456789ABCDEF";
+
+	data_str[0] = hex_digits[(data >> 4) & 0x0F];
+	data_str[1] = hex_digits[data & 0x0F];
+	data_str[2] = '\0';
+}
+
 void	uart_init()
 {
 	uint32_t ubrr;
@@ -51,54 +61,44 @@ void uart_printstr(const char* s)
 
 void	i2c_init()
 {
-	//set debit binaire twi
 	TWBR = ((F_CPU / FREQ_SCL) - 16) / (2 * PRESCALER);
-	//clear le bit, juste apres la transmission de la START condition est envoyee
-	TWCR |= (1 << TWINT);
-	//init acces maitre(START)//transmit a START CONDITION
-	TWCR |= (1 << TWSTA);
-	//active le fonctionnement i2c/twi et active interface twi 
-	TWCR |= (1 << TWEN);
 }
 
 void	i2c_read(void)
 {
-	
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
+    while (!(TWCR & (1 << TWINT)));
+    if (TWSR == 0x50)
+        uart_printstr("Data byte has been recieved; ACK has been received\n");
+    else
+        uart_printstr("ERROR: Data byte has not been recieved\n");
 }
 
 void	i2c_write(unsigned char data)
 {
-	TWCR = (1<<TWINT) | (1<<TWEN);
-	while (!(TWCR & (1 << TWINT)));
 	TWDR = data;
-	if (TWSR == 0x28) //data has been transmitted
-	{
-		uart_tx(data);
-		uart_printstr(" - recu\n");
-	}
-}
-
-void	send_slave_command()
-{
-	_delay_ms(10);
-	i2c_write(0xAC);
-	i2c_write(0x33);
-	i2c_write(0x00);
-	_delay_ms(80);
+	TWCR = (1 << TWINT) | (1 << TWEN);
+	while (!(TWCR & (1 << TWINT)));
+	if (TWSR == 0x28) //data has been transmitted,ACK returned
+		uart_printstr("Data byte has been transmitted; ACK has been received\n");
+	else if (TWSR == 0x18)
+		uart_printstr("SLA+W has been transmitted; ACK has been received\n");
+	else if(TWSR == 0x40)
+		uart_printstr("SLA+R has been transmitted; ACK has been received\n");
+	else
+		uart_printstr("ERROR - (data or +R +W)\n");
 }
 
 void	i2c_start()
 {
+	TWCR |= (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)));
-	//uart_tx(TWSR + 24);
 	if (TWSR == 0x08)
-		uart_printstr("A bien fait le start\n");
-	TWDR = SLA << 1;
-	TWCR = (1<<TWINT) | (1<<TWEN);
-	while (!(TWCR & (1 << TWINT)));
-	if (TWSR == 0x18) //SLA+W has been transmitted; ACK has been received
-		uart_printstr("A bien fait le write dans SLA\n");
-	send_slave_command();
+		uart_printstr("A START condition has been transmitted\n");
+	else if (TWSR == 0x10)
+		uart_printstr("A repeated START condition has been transmitted\n");
+	else
+		uart_printstr("ERROR -(START condition)\n");
 }
 
 void	i2c_stop()
@@ -106,14 +106,38 @@ void	i2c_stop()
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
 }
 
+
+
 int main()
 {
+	uint8_t	data[7];
+	char	data_str[3];
+
 	uart_init();
 	i2c_init();
+	_delay_ms(100);
 	i2c_start();
-	i2c_read();
+	i2c_write(0x38 << 1);
+	_delay_ms(10);
+	i2c_write(0xAC);
+	i2c_write(0x33); //arguments de la commande
+	i2c_write(0x00); //arg2
+	//i2c_stop();
+	_delay_ms(80);
+	i2c_start();
+	i2c_write((0x38 << 1) | 1);
+	for (int i = 0; i < 7; i++)
+	{
+		i2c_read();
+		data[i] = TWDR;
+		int_to_hex_str(data[i], data_str);
+		uart_printstr(data_str);
+		data_str[0] = '\0';
+		data_str[1] = '\0';
+		data_str[2] = '\0';
+
+	}
 	i2c_stop();
-	while (1)
-	{	}
+	while(1);
 	return 1;
 }
