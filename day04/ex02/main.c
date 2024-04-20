@@ -110,10 +110,17 @@ void	i2c_stop()
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
 }
 
+void	create_srh_and_st(uint32_t *s_rh, uint32_t *s_t, uint32_t i, uint32_t data)
+{
+
+}
+
 int main()
 {
-	uint8_t	data[7];
-	char	data_str[7][3];
+	uint8_t		data[7];
+	char		data_str[7][3];
+	uint32_t	s_rh = 0;
+	uint32_t	s_t = 0;
 
 	uart_init();
 	_delay_ms(100);
@@ -130,15 +137,16 @@ int main()
 		//i2c_stop();
 		i2c_start();
 		i2c_write((0x38 << 1) | 1);
-		for (int i = 0; i < 7; i++)
+		for (uint8_t i = 0; i < 7; i++)
 		{
 			i2c_read();
 			data[i] = TWDR;
+			create_srh_and_st(&s_rh, &s_t, i, data);
 			int_to_hex_str(data[i], data_str[i]);
 		}
 		i2c_stop();
 		/*print_hex_value*/
-		for (int byte = 0; byte < 7; byte++)
+		for (uint8_t byte = 0; byte < 7; byte++)
 		{
 			uart_printstr(data_str[byte]);
 			uart_tx(' ');

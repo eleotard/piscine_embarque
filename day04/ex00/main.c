@@ -68,7 +68,6 @@ void	i2c_start()
 {
 	//wait tant que cest pas active
 	while (!(TWCR & (1 << TWINT)));
-	uart_tx(TWSR + 24);
 	if (TWSR == 0x08) //A START condition has been transmitted
 	{
 		// uart_tx(TWSR + 24);
