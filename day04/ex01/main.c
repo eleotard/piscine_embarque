@@ -106,12 +106,10 @@ void	i2c_stop()
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
 }
 
-
-
 int main()
 {
 	uint8_t	data[7];
-	char	data_str[3];
+	char	data_str[7][3];
 
 	uart_init();
 	i2c_init();
@@ -122,7 +120,6 @@ int main()
 	i2c_write(0xAC);
 	i2c_write(0x33); //arguments de la commande
 	i2c_write(0x00); //arg2
-	//i2c_stop();
 	_delay_ms(80);
 	i2c_start();
 	i2c_write((0x38 << 1) | 1);
@@ -130,12 +127,12 @@ int main()
 	{
 		i2c_read();
 		data[i] = TWDR;
-		int_to_hex_str(data[i], data_str);
-		uart_printstr(data_str);
-		data_str[0] = '\0';
-		data_str[1] = '\0';
-		data_str[2] = '\0';
-
+		int_to_hex_str(data[i], data_str[i]);
+	}
+	for (int byte = 0; byte < 7; byte++)
+	{
+		uart_printstr(data_str[byte]);
+		uart_tx(' ');
 	}
 	i2c_stop();
 	while(1);
