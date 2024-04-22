@@ -112,10 +112,22 @@ void	i2c_stop()
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
 }
 
+void	print_hex_value(uint8_t *data)
+{
+	char	data_str[7][3];
+
+	for (uint8_t i = 0; i < 7; i++)
+	{
+		int_to_hex_str(data[i], data_str[i]);
+		uart_printstr(data_str[i]);
+		uart_tx(' ');
+	}
+	uart_tx('\b');
+}
+
 int main()
 {
 	uint8_t	data[7];
-	char	data_str[7][3];
 
 	uart_init();
 	_delay_ms(100);
@@ -136,16 +148,11 @@ int main()
 		{
 			i2c_read();
 			data[i] = TWDR;
-			int_to_hex_str(data[i], data_str[i]);
 		}
 		i2c_stop();
-		/*print_hex_value*/
-		for (int byte = 0; byte < 7; byte++)
-		{
-			uart_printstr(data_str[byte]);
-			uart_tx(' ');
-		}
-		uart_printstr("\b\n\n");
+
+		print_hex_value(data);
+		uart_printstr("\n\n");
 		_delay_ms(2000);
 	}
 	return 1;
