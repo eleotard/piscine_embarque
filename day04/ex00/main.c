@@ -8,6 +8,12 @@
 #define PRESCALER 1
 #define SLA	0x38
 
+//TWGCE 
+//sont tous les deux slaves au depart TWEA TWINT et TWEN
+//quand un bouton est appuye, become master et 
+//envoie a tt le monde 0x00 << 1
+//pour recieve, le slave doit mettre TWAR (1 << TWGCE)
+
 void	uart_init()
 {
 	uint32_t ubrr;

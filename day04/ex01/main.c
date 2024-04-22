@@ -69,9 +69,11 @@ void	i2c_init()
 
 void	i2c_read(void)
 {
+	//(1 << TWEA) sert a dire que le maitre doit envoyer un 
+	//signal ACK apres chaque reception de data
     TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
     while (!(TWCR & (1 << TWINT)));
-    if (TWSR == 0x50)
+    if (TW_STATUS == TW_MR_DATA_ACK)
         uart_printstr("Data byte has been recieved; ACK has been received\n");
     else
         uart_printstr("ERROR: Data byte has not been recieved\n");
@@ -82,11 +84,11 @@ void	i2c_write(unsigned char data)
 	TWDR = data;
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)));
-	if (TWSR == 0x28)
+	if (TW_STATUS == TW_MT_DATA_ACK) //0x28
 		uart_printstr("Data byte has been transmitted; ACK has been received\n");
-	else if (TWSR == 0x18)
+	else if (TW_STATUS == TW_MT_SLA_ACK) //0x18
 		uart_printstr("SLA+W has been transmitted; ACK has been received\n");
-	else if(TWSR == 0x40)
+	else if(TW_STATUS == TW_MR_SLA_ACK) //0x40
 		uart_printstr("SLA+R has been transmitted; ACK has been received\n");
 	else
 		uart_printstr("ERROR - (data or +R +W)\n");
