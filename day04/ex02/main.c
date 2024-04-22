@@ -185,31 +185,46 @@ float	calculate_temperature(uint32_t s_t)
 	return temperature;
 }
 
-void	print_temp_and_humidity(uint32_t s_rh, uint32_t s_t)
+void	print_temp_and_humidity(uint32_t s_rh, uint32_t s_t, float *save_temp, float *save_hum, uint8_t *count)
 {
 	char	temperature[BUFF_SIZE];
 	char	humidity[BUFF_SIZE];
+	float 	average_temp = 0.0;
+	float	average_hum = 0.0;
 
-	dtostrf(calculate_temperature(s_t), 4, 1, temperature);
-	dtostrf(calculate_humidity(s_rh), 3, 0, humidity);
-	uart_printstr("Temperature: "); //0.0 et humidity cest 0
-	uart_printstr(temperature);
-	uart_printstr("°C, Humidity: ");
-	uart_printstr(humidity);
-	uart_printstr("%\n");
+	save_temp[*count] = calculate_temperature(s_t);
+	save_hum[*count] = calculate_humidity(s_rh);
+
+	if (*count == 2)
+	{
+		average_temp = ((save_temp[0] + save_temp[1] + save_temp[2]) / 3.0);
+		average_hum = ((save_hum[0] + save_hum[1] + save_hum[2]) / 3.0);
+		dtostrf(average_temp, 4, 1, temperature);
+		dtostrf(average_hum, 4, 0, humidity);
+		uart_printstr("Temperature: "); //0.0 et humidity cest 0
+		uart_printstr(temperature);
+		uart_printstr("°C, Humidity: ");
+		uart_printstr(humidity);
+		uart_printstr("%\n");
+	}
 }
 
 int main()
 {
 	uint8_t		data[7];
+	float 		save_temp[3] = {0.0, 0.0, 0.0};
+	float		save_humidity[3] = {0.0, 0.0, 0.0};
 	uint32_t	s_rh = 0;
 	uint32_t	s_t = 0;
 
 	uart_init();
 	_delay_ms(100);
 	i2c_init();
+	uint8_t count = 0;
 	while(1)
 	{
+		if (count > 2)
+			count = 0;
 		i2c_start();
 		i2c_write(0x38 << 1);
 		_delay_ms(10);
@@ -229,9 +244,10 @@ int main()
 		// create_srh_and_st(&s_rh, &s_t, &data[1]);
 		i2c_stop();
 		// print_hex_value(data);
-		print_temp_and_humidity(s_rh, s_t);
+		print_temp_and_humidity(s_rh, s_t, save_temp, save_humidity, &count);
 		reset_srh_and_st(&s_rh, &s_t);
-		_delay_ms(2000);
+		_delay_ms(500);
+		count++;
 	}
 	return 1;
 }
