@@ -134,10 +134,42 @@ void	print_error_and_reset(char *color_str, int *i)
 	uart_printstr(" is not a correct caracter (must be in 0123456789ABCDEF or #)\n");
 	int index = 0;
 	while (++index < 8)
-		color_str[*i] = '\0';
+		color_str[index] = '\0';
 	uart_newline();
 	uart_printstr("Enter a HEX RGB value, format #RRGGBB:\n");
 	*i = 0;
+}
+
+void	fill_color(char c1, char c2, uint8_t *color)
+{
+	if (c1 >= '0' && c1 <= '9')
+        *color = c1 - '0';
+	else if (c1 >= 'A' && c1 <= 'F')
+        *color = c1 - 'A' + 10;
+	*color = *color << 4;
+	if (c2 >= '0' && c2 <= '9')
+        *color |= c2 - '0';
+	else if (c2 >= 'A' && c2 <= 'F')
+        *color |= c2 - 'A' + 10;
+}
+
+void	convert(char *color_str)
+{
+	uint8_t red = 0;
+	uint8_t green = 0;
+	uint8_t blue = 0;
+
+	fill_color(color_str[1], color_str[2], &red);
+	fill_color(color_str[4], color_str[5], &green);
+	fill_color(color_str[6], color_str[7], &blue);
+	set_rgb(red, green, blue);
+}
+
+void	reset_color_str(char *color_str)
+{
+	int index = 0;
+	while (++index < 8)
+		color_str[index] = '\0';
 }
 
 int main()
@@ -153,9 +185,8 @@ int main()
 	int i = 0;
 	while (1)
 	{
-		if (i < 8 && (color_str_is_set == 0))
+		if (!color_str_is_set)
 		{
-
 			color_str[i] = uart_rx();
 			uart_tx(color_str[i]);
 			if (check_char(color_str[i], i))
@@ -164,6 +195,15 @@ int main()
 				i++;
 			if (i == 7)
 				color_str_is_set = 1;
+		}
+		else if (color_str_is_set)
+		{
+			uart_newline();
+			uart_printstr("LA COULEUR EST SETTTT\n");
+			convert(color_str);
+			_delay_ms(3000);
+			reset_color_str(color_str);
+			color_str_is_set = 0;
 		}
 	}
 	return 1;
