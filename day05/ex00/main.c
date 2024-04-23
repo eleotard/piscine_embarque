@@ -3,6 +3,8 @@
 #include <stdbool.h>
 
 #define UART_BAUDRATE (uint32_t)115200
+#define MAX_COUNT 15
+#define ADDR_COUNT 0
 
 void	uart_init()
 {
@@ -53,9 +55,8 @@ int main()
 	DDRD &= ~(1 << PD2);
 	
 	bool is_pressed = 0;
-	uint16_t count = 0;
-	if (eeprom_read_byte(0) == 255)
-        eeprom_write_word(0, count);
+	uint8_t count = eeprom_read_byte(ADDR_COUNT) % (MAX_COUNT + 1);
+	eeprom_write_byte(ADDR_COUNT, count);
     while (1)
     {
         if (!(PIND & (1 << PD2)))
@@ -63,14 +64,14 @@ int main()
             if (!is_pressed)
             {
                 is_pressed = 1;
-                if (eeprom_read_word(0) < 15)
-                    eeprom_write_word(0, (eeprom_read_word(0) + 1));
+                if (eeprom_read_byte(ADDR_COUNT) < MAX_COUNT)
+                    eeprom_write_byte(ADDR_COUNT, (eeprom_read_byte(0) + 1));
                 else
-                    eeprom_write_word(0, (uint16_t)0);
-                uart_putnbr(eeprom_read_word(0));
+                    eeprom_write_byte(ADDR_COUNT, (uint16_t)0);
+                uart_putnbr(eeprom_read_byte(ADDR_COUNT));
                 uart_printstr("\n");
-				PORTB = (eeprom_read_word(0) & 0x7);
-				if (eeprom_read_word(0) >> 3)
+				PORTB = (eeprom_read_byte(ADDR_COUNT) & 0x7);
+				if (eeprom_read_byte(ADDR_COUNT) >> 3)
 					PORTB |= (1 << PB4);
             }
         }
@@ -78,6 +79,8 @@ int main()
 			is_pressed = 0;
 	}
 	return 1;
+}
+
 
 	//regarder quelle est la taille de l eeprom (1024 octets)
 	//ladresse 0 (NULL) existe 
@@ -96,5 +99,3 @@ int main()
 	//2 octets pour l id
 	//2 octets pour la len
 	//minimum 4 octets
-
-}
