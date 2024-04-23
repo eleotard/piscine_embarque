@@ -76,7 +76,6 @@ void	i2c_start()
 	while (!(TWCR & (1 << TWINT)));
 	if (TWSR == 0x08) //A START condition has been transmitted
 	{
-		// uart_tx(TWSR + 24);
 		uart_printstr("A bien fait le start\n");
 		//permet de rentrer en MT("MASTER") mode
 		TWDR = SLA << 1;
