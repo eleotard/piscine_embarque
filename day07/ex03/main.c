@@ -38,7 +38,7 @@ void	ft_ADC()
 	ADCSRA |= (1 << ADSC);
 	while ((ADCSRA & (1 << ADSC)));
 	voltage = ADC;
-	temperature = (voltage * 25) / 314;
+	temperature = (voltage * 0.98) - 283;
 
 	uart_printstr("Voltage: ");
 	uart_putnbr(voltage);
@@ -55,9 +55,9 @@ int main()
 	set_ADC();
 	while (1)
 	{
+		_delay_ms(20);
 		ft_ADC();
 		uart_newline();
-		_delay_ms(20);
 	}
 	return 1;
 }
