@@ -2,7 +2,6 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
-
 void	uart_init(void);
 void	uart_tx(unsigned char c);
 void	uart_printstr(const char *s);
@@ -13,22 +12,6 @@ void	uart_newline();
 #define RV1 0
 #define LDR 1 //Light Dependent Resistor
 #define NTC 2 //Negative Temperature Coefficient
-
-void	int_to_hex_str(uint8_t data, char *data_str)
-{
-	const char hex_digits[] = "0123456789ABCDEF";
-
-	data_str[0] = hex_digits[(data >> 4) & 0x0F];
-	data_str[1] = hex_digits[data & 0x0F];
-	data_str[2] = '\0';
-}
-
-void	ft_bzero(char *data_str, uint8_t size)
-{
-	uint8_t i = 0;
-	while (++i < size)
-		data_str[i] = 0;
-}
 
 void	set_ADC()
 {
