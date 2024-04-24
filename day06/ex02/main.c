@@ -67,6 +67,8 @@ int main()
 {
 	DDRD |= (1 << PD3) | (1 << PD5) | (1 << PD6);
 	init_rgb();
+	set_rgb(0,0,0);
+	while (1) {}
 	uint8_t pos = 0;
 	while (1)
 	{

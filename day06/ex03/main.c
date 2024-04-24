@@ -2,67 +2,12 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
-#define UART_BAUDRATE (uint32_t)115200
-
-void	uart_init(void)
-{
-	uint32_t	ubrr;
-
-	ubrr = (F_CPU / (16 * UART_BAUDRATE));
-	UBRR0L = (uint8_t)(ubrr & 0xFF);
-	UBRR0H = (uint8_t)(ubrr >> 8);
-	UCSR0B |= (1 << RXEN0) | (1 << TXEN0);
-	UCSR0B |= (1 << RXCIE0);
-}
-
-void	uart_tx(unsigned char c)
-{
-	while (!(UCSR0A & (1 << UDRE0)))
-		;
-	UDR0 = c;
-}
-
-void	uart_printstr(const char *s)
-{
-	while (*s)
-	{
-		if (*s == '\n')
-			uart_tx('\r');
-		uart_tx(*s);
-		s++;
-	}
-}
-
-char	uart_rx(void)
-{
-	while (!(UCSR0A & (1 << RXC0)))
-    {}
-	return UDR0;
-}
-
-
-void	uart_putnbr(int64_t n)
-{
-	if (n < 0)
-	{
-		uart_tx('-');
-		n = -n;
-	}
-	if (n > 9)
-	{
-		uart_putnbr(n / 10);
-		uart_putnbr(n % 10);
-	}
-	else
-		uart_tx(n + '0');
-	
-}
-
-void	uart_newline()
-{
-	uart_tx('\n');
-	uart_tx('\r');
-}
+void	uart_init(void);
+void	uart_tx(unsigned char c);
+void	uart_printstr(const char *s);
+char	uart_rx(void);
+void	uart_putnbr(int64_t n);
+void	uart_newline();
 
 void set_timer_2() //bleu
 {
@@ -128,7 +73,7 @@ void	reset_color_str(char *color_str)
 void	print_error_and_reset(char *color_str, int *i)
 {
 	uart_newline();
-	uart_printstr("ERROR input: ");
+	uart_printstr("\x1b[2J\x1b[HERROR input: ");
 	uart_tx(color_str[*i]);
 	uart_printstr(" is not a correct caracter (must be in 0123456789ABCDEF or #)\n");
 	uart_newline();
@@ -162,7 +107,7 @@ void	convert_to_int_rgb(char *color_str)
 
 void	init_process(char *color_str)
 {
-	uart_printstr("Enter a HEX RGB value, format #RRGGBB:\n");
+	uart_printstr("\x1b[2J\x1b[HEnter a HEX RGB value, format #RRGGBB:\n");
 	reset_color_str(color_str);
 }
 
