@@ -64,14 +64,6 @@ void	uart_newline()
 	uart_tx('\r');
 }
 
-// ISR (USART_RX_vect)
-// {
-// 	unsigned char rec;
-
-// 	rec = uart_rx();
-// 	uart_tx(rec);
-// }
-
 void set_timer_2() //bleu
 {
 	//mode 7- FAST PWM - 0 a 0xFF PAGE 164
@@ -126,17 +118,20 @@ int	check_char(char c, int i)
 	return 0;
 }
 
+void	reset_color_str(char *color_str)
+{
+	int index = 0;
+	while (++index < 8)
+		color_str[index] = '\0';
+}
+
 void	print_error_and_reset(char *color_str, int *i)
 {
 	uart_newline();
 	uart_printstr("ERROR input: ");
 	uart_tx(color_str[*i]);
 	uart_printstr(" is not a correct caracter (must be in 0123456789ABCDEF or #)\n");
-	int index = 0;
-	while (++index < 8)
-		color_str[index] = '\0';
 	uart_newline();
-	uart_printstr("Enter a HEX RGB value, format #RRGGBB:\n");
 	*i = 0;
 }
 
@@ -153,7 +148,7 @@ void	fill_color(char c1, char c2, uint8_t *color)
         *color |= c2 - 'A' + 10;
 }
 
-void	convert(char *color_str)
+void	convert_to_int_rgb(char *color_str)
 {
 	uint8_t red = 0;
 	uint8_t green = 0;
@@ -165,28 +160,28 @@ void	convert(char *color_str)
 	set_rgb(red, green, blue);
 }
 
-void	reset_color_str(char *color_str)
+void	init_process(char *color_str)
 {
-	int index = 0;
-	while (++index < 8)
-		color_str[index] = '\0';
+	uart_printstr("Enter a HEX RGB value, format #RRGGBB:\n");
+	reset_color_str(color_str);
 }
+
 
 int main()
 {
+	char	color_str[8];
+	uint8_t color_str_is_set = 0;
+	int i = 0;
+
 	DDRD |= (1 << PD3) | (1 << PD5) | (1 << PD6);
 	uart_init();
 	init_rgb();
-	char	color_str[8];
-	//uint32_t color = 0;
-	uint8_t color_str_is_set = 0;
-
-	uart_printstr("Enter a HEX RGB value, format #RRGGBB:\n");
-	int i = 0;
 	while (1)
 	{
 		if (!color_str_is_set)
 		{
+			if (i == 0)
+				init_process(color_str);
 			color_str[i] = uart_rx();
 			uart_tx(color_str[i]);
 			if (check_char(color_str[i], i))
@@ -198,12 +193,12 @@ int main()
 		}
 		else if (color_str_is_set)
 		{
+			convert_to_int_rgb(color_str);
 			uart_newline();
-			uart_printstr("LA COULEUR EST SETTTT\n");
-			convert(color_str);
-			_delay_ms(3000);
-			reset_color_str(color_str);
+			uart_printstr("The RGB color has been set :)\n\n");
+			//_delay_ms(3000);
 			color_str_is_set = 0;
+			i = 0;
 		}
 	}
 	return 1;
