@@ -11,18 +11,6 @@ data transfer protocol for microcontrollers*/
 #define MISO    PINB4 //Master In Slave Out line
 #define SCK     PINB5 //Shift Clock
 
-typedef struct s_led {
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-} t_led;
-
-typedef struct rgb_s {
-	t_led d6;
-	t_led d7;
-	t_led d8; 
-} t_rgb;
-
 void	set_ADC()
 {
 	//Select the high reference voltage: use of AVCC as a reference
@@ -125,14 +113,22 @@ void	set_average(uint8_t nb)
 {
 	if (nb >= (33 * 255 / 100) && (nb < (66 * 255 / 100)))
 	{
-		send_colordata_to_D6(255, 255, 255);
+		send_colordata_to_D6(127, 0, 255);
+		send_colordata_to_D7(0, 0, 0);
+		send_colordata_to_D8(0, 0, 0);
 	}
-	else if ((nb > (66 * 255 / 100)) && (nb <= (66 * 255 / 100)))
-		PORTB = (1 << PB0) | (1 << PB1);
-	else if ((nb > (50 * 255 / 100)) && (nb <= (75 * 255 / 100)))
-		PORTB = (1 << PB0) | (1 << PB1) | (1 << PB2);
-	else
-		PORTB = (1 << PB0) | (1 << PB1) | (1 << PB2) | (1 << PB4);
+	else if ((nb > (66 * 255 / 100)) && (nb <= (99 * 255 / 100)))
+	{
+		send_colordata_to_D6(127, 0, 255);
+		send_colordata_to_D7(127, 0, 255);
+		send_colordata_to_D8(0, 0, 0);
+	}
+	else if (nb == 255)
+	{
+		send_colordata_to_D6(127, 0, 255);
+		send_colordata_to_D7(127, 0, 255);
+		send_colordata_to_D8(127, 0, 255);
+	}
 }
 
 void	ft_ADC()
@@ -141,48 +137,13 @@ void	ft_ADC()
 	while ((ADCSRA & (1 << ADSC)));
 }
 
-void	send_colordata(t_rgb *leds)
-{
-	for (uint8_t i = 0; i < 4; i++)
-		SPI_masterTransmitByte(0);
-	SPI_masterTransmitByte(255);
-	SPI_masterTransmitByte(leds->d6.b);
-	SPI_masterTransmitByte(leds->d6.g);
-	SPI_masterTransmitByte(leds->d6.r);
-	SPI_masterTransmitByte(255);
-	SPI_masterTransmitByte(leds->d7.b);
-	SPI_masterTransmitByte(leds->d7.g);
-	SPI_masterTransmitByte(leds->d7.r);
-	SPI_masterTransmitByte(255);
-	SPI_masterTransmitByte(leds->d8.b);
-	SPI_masterTransmitByte(leds->d8.g);
-	SPI_masterTransmitByte(leds->d8.r);
-	for (uint8_t j = 0; j < 4; j++)
-		SPI_masterTransmitByte(255);
-}
-
 int main()
 {
 	SPI_init();
-	t_rgb leds;
-
-	leds = (t_rgb){0};
+	set_ADC();
 	while (1)
 	{
 		ft_ADC();
 		set_average(ADCH);
-
-		_delay_ms(83);
-		send_colordata_to_D6(255, 255, 255);
-		_delay_ms(250);
-		send_colordata_to_D6(0, 0, 0);
-		_delay_ms(83);
-		send_colordata_to_D7(255, 255, 255);
-		_delay_ms(250);
-		send_colordata_to_D7(0, 0, 0);
-		_delay_ms(84);
-		send_colordata_to_D8(255, 255, 255);
-		_delay_ms(250);
-		send_colordata_to_D8(0, 0, 0);
 	}
 }

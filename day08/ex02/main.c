@@ -108,15 +108,15 @@ int main()
 	while (1)
 	{
 		_delay_ms(83);
-		send_colordata_to_D6(255, 255, 255);
+		send_colordata_to_D6(127, 0, 255);
 		_delay_ms(250);
 		send_colordata_to_D6(0, 0, 0);
 		_delay_ms(83);
-		send_colordata_to_D7(255, 255, 255);
+		send_colordata_to_D7(127, 0, 255);
 		_delay_ms(250);
 		send_colordata_to_D7(0, 0, 0);
 		_delay_ms(84);
-		send_colordata_to_D8(255, 255, 255);
+		send_colordata_to_D8(127, 0, 255);
 		_delay_ms(250);
 		send_colordata_to_D8(0, 0, 0);
 	}
