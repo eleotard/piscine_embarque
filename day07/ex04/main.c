@@ -132,8 +132,8 @@ void	ft_ADC()
 	ADCSRA |= (1 << ADSC);
 	while ((ADCSRA & (1 << ADSC)));
 	int_to_hex_str(ADCH, data_str);
-	uart_printstr(data_str);
-	uart_newline();
+	//uart_printstr(data_str);
+	//uart_newline();
 }
 
 
