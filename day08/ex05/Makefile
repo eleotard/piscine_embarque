@@ -1,4 +1,4 @@
-SRCS = main.c uart.c spi.c
+SRCS = main.c uart.c adc.c
 
 
 OBJS = ${SRCS:%.c=%.o}
@@ -17,9 +17,7 @@ main.hex: main.bin
 	avr-objcopy -j .text -j .data -O ihex main.bin $@
 
 flash:
-	killall screen
 	avrdude -p atmega328p -c arduino -P /dev/ttyUSB0 -b 115200 -e -U flash:w:main.hex:i 
-	gnome-terminal -- screen /dev/ttyUSB0 115200
 
 clean:
 	rm *.o
