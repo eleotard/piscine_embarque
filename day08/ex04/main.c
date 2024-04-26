@@ -9,66 +9,116 @@ char	uart_rx(void);
 void	uart_putnbr(int64_t n);
 void	uart_newline();
 
+#define SPI_DDR DDRB
+#define SS      PINB2 //Slave Select Line
+#define MOSI    PINB3 //Master Out Slave In line
+#define MISO    PINB4 //Master In Slave Out line
+#define SCK     PINB5 //Shift Clock
 #define INPUT_SIZE 15
+#define WAIT_ITERATIONS (3 * 16000000) / 12
 
-void set_timer_2() //bleu
+void SPI_init()
 {
-	//mode 7- FAST PWM - 0 a 0xFF PAGE 164
-	TCCR2A |= (1 << WGM21) | (1 << WGM20); 
-	
-	//prediv 1024 //PAGE 166
-	TCCR2B |= (1 << CS22) | (1 << CS21) | (1 << CS20);
-
-	//Clear OC2B on Compare Match, set OC2B at BOTTOM, (non-inverting mode).
-	TCCR2A |= (1 << COM2B1); //PAGE 163
-	OCR2B = 0;
+    // set CS, MOSI and SCK to output, miso is an input
+    SPI_DDR |= (1 << SS) | (1 << MOSI) | (1 << SCK);
+    // enable SPI, set as master, and clock to fosc/128
+    SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR1) | (1 << SPR0);
 }
 
-void set_timer_0() //rouge et vert
+void SPI_masterTransmitByte(uint8_t data)
 {
-	//mode 1 - Compte de 0 à 0xFF
-	TCCR0A = 0;
-	TCCR0B = 0;
-	TCCR0A |= (1 << WGM00) | (1 << WGM01);
+    // load data into data register
+    SPDR = data;
+    // Wait for transmission complete //polling
+	//termine quand SPIF passe a 1
+    while(!(SPSR & (1 << SPIF)));
+}
 
-	//prediv 1024
-	TCCR0B |= (1 << CS00);
-	TCCR0B |= (1 << CS02);
-	
-	//OC0A/B = 0 lors de la détection d’égalité ;
-	//OC0A/B = 1 lorsque le compteur passe à 0 (BOTTOM) (mode non-inversé)
-	TCCR0A |= (1 << COM0B1);
-	TCCR0A |= (1 << COM0A1);
-	OCR0B = 0;
-	OCR0A = 0;
+void	send_colordata_to_D6(uint8_t r, uint8_t g, uint8_t b)
+{
+	for (uint8_t i = 0; i < 4; i++)
+		SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(255);
+	SPI_masterTransmitByte(b);
+	SPI_masterTransmitByte(g);
+	SPI_masterTransmitByte(r);
+	SPI_masterTransmitByte(255);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(255);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	for (uint8_t j = 0; j < 4; j++)
+		SPI_masterTransmitByte(255);
+}
+
+void	send_colordata_to_D7(uint8_t r, uint8_t g, uint8_t b)
+{
+	for (uint8_t i = 0; i < 4; i++)
+		SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(255);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(255);
+	SPI_masterTransmitByte(b);
+	SPI_masterTransmitByte(g);
+	SPI_masterTransmitByte(r);
+	SPI_masterTransmitByte(255);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	for (uint8_t j = 0; j < 4; j++)
+		SPI_masterTransmitByte(255);
+}
+
+void	send_colordata_to_D8(uint8_t r, uint8_t g, uint8_t b)
+{
+	for (uint8_t i = 0; i < 4; i++)
+		SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(255);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(255);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(0);
+	SPI_masterTransmitByte(255);
+	SPI_masterTransmitByte(b);
+	SPI_masterTransmitByte(g);
+	SPI_masterTransmitByte(r);
+	for (uint8_t j = 0; j < 4; j++)
+		SPI_masterTransmitByte(255);
 }
 
 void set_rgb(uint8_t r, uint8_t g, uint8_t b)
 {
-	OCR0B = r;
-	OCR0A = g;
-	OCR2B = b;
+	send_colordata_to_D6(r, g, b);
+	send_colordata_to_D7(r, g, b);
+	send_colordata_to_D8(r, g, b);
 }
 
-void init_rgb()
+void wheel(uint8_t pos)
 {
-	set_timer_0();
-	set_timer_2();
+	pos = 255 - pos;
+	if (pos < 85)
+	{
+		set_rgb(255 - pos * 3, 0, pos * 3); //rouge au vert
+	}
+	else if (pos < 170)
+	{
+		pos = pos - 85;
+		set_rgb(0, pos * 3, 255 - pos * 3); //vert  au bleu
+	}
+	else
+	{
+		pos = pos - 170;
+		set_rgb(pos * 3, 255 - pos * 3, 0); // bleu au rouge
+	}
 }
-
-// int	check_char(char c, int i)
-// {
-// 	if (i == 0 && c != '#')
-// 		return 1;
-// 	else if (i != 0 && (!(c >= 'A' && c <= 'F') 
-// 		&& !(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'f')))
-// 		return 1;
-// 	else if (i == 7 && c != 'D')
-// 		return 1;
-// 	else if (i == 8 && (c != '6' && c != '7' && c != '8'))
-// 		return 1;
-// 	return 0;
-// }
 
 uint8_t ft_strlen(char *str)
 {
@@ -120,22 +170,11 @@ void	reset_color_str(char *color_str)
 		color_str[index] = '\0';
 }
 
-void	print_error_and_reset(char *color_str, int *i)
+void	print_error()
 {
-	(void)color_str;
 	uart_newline();
-	//uart_printstr("\x1b[2J\x1b[HERROR input: ");
-	// if (*i >= INPUT_SIZE)
-	// 	uart_printstr("ERROR input: too long");
-	// else
-	// {
-	// 	uart_printstr("ERROR input: ");
-	// 	uart_tx(color_str[*i]);
-	// 	uart_printstr(" is not a correct caracter (must be in 0123456789ABCDEF or #)\n");
-	// }
 	uart_printstr("ERROR input.\n");
 	uart_newline();
-	*i = 0;
 }
 
 void	fill_color(char c1, char c2, uint8_t *color)
@@ -160,7 +199,12 @@ void	convert_to_int_rgb(char *color_str)
 	fill_color(color_str[1], color_str[2], &red);
 	fill_color(color_str[3], color_str[4], &green);
 	fill_color(color_str[5], color_str[6], &blue);
-	set_rgb(red, green, blue);
+	if (color_str[8] == '6')
+		send_colordata_to_D6(red, green, blue);
+	else if (color_str[8] == '7')
+		send_colordata_to_D7(red, green, blue);
+	else if (color_str[8] == '8')
+		send_colordata_to_D8(red, green, blue);
 }
 
 void	init_process(char *color_str)
@@ -170,6 +214,26 @@ void	init_process(char *color_str)
 	reset_color_str(color_str);
 }
 
+void	full_rainbow()
+{
+	uint8_t i = 0;
+	uint8_t pos = 0;
+	while (1)
+	{
+		wheel(pos);
+		pos++;
+		if (pos == 255)
+		{
+			pos = 0;
+			i++;
+		}
+		if (i > 5)
+			break;
+	}
+	send_colordata_to_D6(0, 0, 0);
+	send_colordata_to_D7(0, 0, 0);
+	send_colordata_to_D8(0, 0, 0);
+}
 
 int main()
 {
@@ -177,9 +241,8 @@ int main()
 	uint8_t color_str_is_set = 0;
 	int i = 0;
 
-	DDRD |= (1 << PD3) | (1 << PD5) | (1 << PD6);
 	uart_init();
-	init_rgb();
+	SPI_init();
 	while (1)
 	{
 		if (!color_str_is_set)
@@ -192,20 +255,26 @@ int main()
 			{
 				color_str[i] = '\0';
 				if (check_input(color_str))
-					print_error_and_reset(color_str, &i);
+					print_error();
 				else
 					color_str_is_set = 1;
+				i = -1;
 			}
 			i++;
-			if (i >= INPUT_SIZE) //bon
-				print_error_and_reset(color_str, &i);
+			if (i >= INPUT_SIZE)
+			{
+				print_error();
+				i = 0;
+			}
 		}	
 		else if (color_str_is_set)
 		{
-			convert_to_int_rgb(color_str);
 			uart_newline();
 			uart_printstr("The RGB color has been set :)\n\n");
-			//_delay_ms(3000);
+			if (ft_strlen(color_str) == 12) //FULLRAINBOW
+				full_rainbow();
+			else
+				convert_to_int_rgb(color_str);
 			color_str_is_set = 0;
 			i = 0;
 		}

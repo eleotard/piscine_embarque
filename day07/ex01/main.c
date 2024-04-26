@@ -98,7 +98,7 @@ int main()
 		ft_ADC(LDR);
 		ft_ADC(NTC);
 		uart_newline();
-		_delay_ms(200);
+		_delay_ms(20);
 	}
 	return 1;
 }
