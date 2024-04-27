@@ -63,33 +63,19 @@ void	send_colordata_to_LEDS(uint8_t leds_settings[3][3])
 		SPI_masterTransmitByte(255);
 }
 
-void	init_led_settings(uint8_t leds_settings[3][3])
-{
-	leds_settings[0][0] = 0;
-	leds_settings[0][1] = 0;
-	leds_settings[0][2] = 0;
-	leds_settings[1][0] = 0;
-	leds_settings[1][1] = 0;
-	leds_settings[1][2] = 0;
-	leds_settings[2][0] = 0;
-	leds_settings[2][1] = 0;
-	leds_settings[2][2] = 0;
-}
-
 int main()
 {
-	uart_init();
-	SPI_init();
-	set_ADC();
-	DDRD &= ~(1 << PD2); //sw1
-	DDRD &= ~(1 << PD4); //sw2
-	uint8_t leds_settings[3][3];
+	uint8_t leds_settings[3][3] = {0};
 	uint8_t cur_color = RED;
 	uint8_t cur_led = D6;
-
 	uint8_t sw1_is_pressed = 0;
 	uint8_t sw2_is_pressed = 0;
-	init_led_settings(leds_settings);
+
+	DDRD &= ~(1 << PD2); //sw1
+	DDRD &= ~(1 << PD4); //sw2
+	//uart_init();
+	SPI_init();
+	set_ADC();
 	send_colordata_to_LEDS(leds_settings);
 	while (1)
 	{

@@ -150,7 +150,7 @@ void	full_rainbow()
 			pos = 0;
 			i++;
 		}
-		if (i > 5)
+		if (i > 4)
 			break;
 	}
 	send_colordata_to_D6(0, 0, 0);
@@ -162,7 +162,7 @@ int main()
 {
 	char	color_str[INPUT_SIZE]; //12 #FULLRAINBOW\n #221299D8\n //10
 	uint8_t color_str_is_set = 0;
-	int i = 0;
+	int 	i = 0;
 
 	uart_init();
 	SPI_init();
