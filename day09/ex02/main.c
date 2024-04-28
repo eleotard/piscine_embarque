@@ -16,7 +16,19 @@ void	uart_debug(const char *s);
 void	uart_printhexa(uint8_t data);
 void	uart_printbinary(uint8_t value);
 
-
+const uint8_t digits[10] = {
+    // abcdefg
+    0b00111111, // 0
+    0b00000110, // 1
+    0b01011011, // 2
+    0b01001111, // 3
+    0b01100110, // 4
+    0b01101101, // 5
+    0b01111101, // 6
+    0b00000111, // 7
+    0b01111111, // 8
+    0b01101111  // 9
+};
 
 void	i2c_init()
 {
@@ -81,44 +93,56 @@ uint8_t 	i2c_read_reg(uint8_t reg_addr)
 	i2c_write((0x20 << 1) + 1);
 	i2c_read();
 	i2c_stop();
-	//uart_printbinary(TWDR);
+	uart_printbinary(TWDR);
 	return (TWDR);
 }
 
-void	set_D9_D10_D11_as_output()
-{
-	i2c_start();
-	i2c_write(0x20 << 1);
-	i2c_write(0x06);
-	i2c_write(0xF1); //11110001 //configure 01 02 03 comme output
-	i2c_stop();
-}
-
-void	set_leds_state(uint8_t led_settings)
+void	set_output_port_0(uint8_t conf)
 {
 	i2c_start();
 	i2c_write(0x20 << 1);
 	i2c_write(0x02);
-	i2c_write(led_settings);
+	i2c_write(conf);
+	i2c_stop();
+}
+
+void	set_conf_port_0(uint8_t conf)
+{
+	i2c_start();
+	i2c_write(0x20 << 1);
+	i2c_write(0x06);
+	i2c_write(conf);
+	i2c_stop();
+}
+
+void	set_output_port_1(uint8_t conf)
+{
+	i2c_start();
+	i2c_write(0x20 << 1);
+	i2c_write(0x03);
+	i2c_write(conf);
+	i2c_stop();
+}
+
+void	set_conf_port_1(uint8_t conf)
+{
+	i2c_start();
+	i2c_write(0x20 << 1);
+	i2c_write(0x07);
+	i2c_write(conf);
 	i2c_stop();
 }
 
 int main()
 {
-	uint8_t count = 0;
 	i2c_init();
 	uart_init();
 
-	set_D9_D10_D11_as_output();
-	while (1)
-	{
-		set_leds_state(~(count << 1));
-		if (!(i2c_read_reg(0x00) & 1)) //le bouton est appuye
-		{
-			count = (count + 1) % 8;
-			while (!(i2c_read_reg(0x00) & 1));
-			_delay_ms(10);
-		}
-	}
+	set_conf_port_0(0b01111111); //configure CA
+	set_output_port_0(0b01111111);
+	set_conf_port_1(0b00000000);
+	set_output_port_1(digits[2]); //affiche 2
+
+	while (1);
 	return 1;
 }

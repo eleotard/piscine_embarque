@@ -17,10 +17,10 @@ main.hex: main.bin
 	avr-objcopy -j .text -j .data -O ihex main.bin $@
 
 flash:
-	screen -X quit &> /dev/null || true 
-	sleep 1
+	#screen -X quit &> /dev/null || true 
+	#sleep 1
 	avrdude -p atmega328p -c arduino -P /dev/ttyUSB0 -b 115200 -e -U flash:w:main.hex:i 
-	gnome-terminal -- screen /dev/ttyUSB0 115200
+	#gnome-terminal -- screen /dev/ttyUSB0 115200
 
 clean:
 	rm *.o
